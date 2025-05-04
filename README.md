@@ -27,16 +27,14 @@ Info:CreateButton({
 
 -- 2. PVP
 local PVP = Window:CreateTab("PVP", 4483362458)
-
--- No-Clip
-local noclip
 PVP:CreateToggle({
     Name = "No-Clip",
     CurrentValue = false,
     Callback = function(on)
+        local noclip
         if on then
             noclip = game:GetService("RunService").Stepped:Connect(function()
-                for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
                     if v:IsA("BasePart") then v.CanCollide = false end
                 end
             end)
@@ -44,7 +42,6 @@ PVP:CreateToggle({
     end
 })
 
--- Speed
 PVP:CreateToggle({
     Name = "Speed (Corrida Rápida)",
     CurrentValue = false,
@@ -54,7 +51,6 @@ PVP:CreateToggle({
     end
 })
 
--- Anti-Queda
 PVP:CreateToggle({
     Name = "Anti-Queda",
     CurrentValue = false,
@@ -72,14 +68,13 @@ PVP:CreateToggle({
 
 -- 3. Farms
 local Farms = Window:CreateTab("Farms", 4483362458)
-
 Farms:CreateToggle({
     Name = "Auto-Farm Lixos da Cidade",
     CurrentValue = false,
     Callback = function(on)
         _G.LIXO = on
         while _G.LIXO do
-            for _,v in pairs(workspace:GetDescendants()) do
+            for _, v in pairs(workspace:GetDescendants()) do
                 if v.Name == "Lixo" and v:IsA("Part") then
                     firetouchinterest(v, game.Players.LocalPlayer.Character.HumanoidRootPart, 0)
                 end
@@ -95,7 +90,7 @@ Farms:CreateToggle({
     Callback = function(on)
         _G.PLANTA = on
         while _G.PLANTA do
-            for _,v in pairs(workspace:GetDescendants()) do
+            for _, v in pairs(workspace:GetDescendants()) do
                 if v.Name == "Planta" and v:IsA("Part") then
                     firetouchinterest(v, game.Players.LocalPlayer.Character.HumanoidRootPart, 0)
                 end
@@ -116,8 +111,6 @@ Aimbot:CreateButton({
 
 -- 5. Visuais
 local Visuais = Window:CreateTab("Visuais", 4483362458)
-
--- ESP Funcional
 Visuais:CreateToggle({
     Name = "ESP (Pessoas + Ferramentas)",
     CurrentValue = false,
@@ -128,7 +121,6 @@ Visuais:CreateToggle({
     end
 })
 
--- Dupe (ligável/desligável)
 Visuais:CreateToggle({
     Name = "Dupe (Duplicar Itens)",
     CurrentValue = false,
@@ -141,11 +133,10 @@ Visuais:CreateToggle({
 
 -- 6. Players
 local Players = Window:CreateTab("Players", 4483362458)
-
 Players:CreateButton({
     Name = "Bring All",
     Callback = function()
-        for _,plr in pairs(game.Players:GetPlayers()) do
+        for _, plr in pairs(game.Players:GetPlayers()) do
             if plr.Character then
                 plr.Character:MoveTo(game.Players.LocalPlayer.Character.HumanoidRootPart.Position)
             end
@@ -155,8 +146,6 @@ Players:CreateButton({
 
 -- 7. Trolls
 local Trolls = Window:CreateTab("Trolls", 4483362458)
-
--- Fake Lag
 Trolls:CreateButton({
     Name = "Fake Lag",
     Callback = function()
@@ -167,7 +156,6 @@ Trolls:CreateButton({
     end
 })
 
--- Freezer por nome
 Trolls:CreateInput({
     Name = "Dar Freezer por Nome",
     PlaceholderText = "Digite o nome exato",
@@ -179,26 +167,3 @@ Trolls:CreateInput({
         end
     end
 })
-
--- Sistema de Proteção
-local function Protecao()
-    local Players = game:GetService("Players")
-    local LP = Players.LocalPlayer
-
-    -- Anti-Kick
-    local mt = getrawmetatable(game)
-    setreadonly(mt, false)
-    local old = mt.__namecall
-    mt.__namecall = newcclosure(function(self, ...)
-        local method = getnamecallmethod()
-        if method == "Kick" and self == LP then return end
-        return old(self, ...)
-    end)
-
-    -- Anti-Ban / Anti-Exploit básico
-    LP.CharacterAdded:Connect(function(char)
-        char:WaitForChild("Humanoid").BreakJointsOnDeath = false
-    end)
-end
-
-Protecao()
