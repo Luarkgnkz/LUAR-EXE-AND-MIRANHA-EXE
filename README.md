@@ -11,198 +11,194 @@ local Window = Rayfield:CreateWindow({
         FolderName = "Luar.Exe V2",
         FileName = "Config"
     },
-    KeySystem = false,
+    Discord = { Enabled = false },
+    KeySystem = false
 })
 
--- 1. Aba Info
-local InfoTab = Window:CreateTab("Info", 4483362458)
-InfoTab:CreateParagraph({Title = "Chorou Pro Luar.Exe e Pro Miranha", Content = "Será???"})
-InfoTab:CreateButton({
+-- 1. Info
+local Info = Window:CreateTab("Info", 4483362458)
+Info:CreateParagraph({ Title = "Chorou Pro Luar.Exe e Pro Miranha", Content = "Será???" })
+Info:CreateButton({
     Name = "Rejoin (Reentrar no servidor)",
     Callback = function()
         game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, game.Players.LocalPlayer)
     end
 })
 
--- 2. Aba PVP
-local PVPTab = Window:CreateTab("PVP", 4483362458)
-local noclipEnabled, noclipConn = false, nil
-PVPTab:CreateToggle({
+-- 2. PVP
+local PVP = Window:CreateTab("PVP", 4483362458)
+
+-- No-Clip
+local noclip
+PVP:CreateToggle({
     Name = "No-Clip",
     CurrentValue = false,
-    Callback = function(state)
-        noclipEnabled = state
-        if state then
-            noclipConn = game:GetService("RunService").Stepped:Connect(function()
-                local char = game.Players.LocalPlayer.Character
-                if char then
-                    for _, part in pairs(char:GetDescendants()) do
-                        if part:IsA("BasePart") then part.CanCollide = false end
-                    end
+    Callback = function(on)
+        if on then
+            noclip = game:GetService("RunService").Stepped:Connect(function()
+                for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                    if v:IsA("BasePart") then v.CanCollide = false end
                 end
             end)
-        else
-            if noclipConn then noclipConn:Disconnect() end
-        end
+        elseif noclip then noclip:Disconnect() end
     end
 })
-local originalWalkSpeed = 16
-PVPTab:CreateToggle({
+
+-- Speed
+PVP:CreateToggle({
     Name = "Speed (Corrida Rápida)",
     CurrentValue = false,
-    Callback = function(state)
-        local hum = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum.WalkSpeed = state and 50 or originalWalkSpeed end
+    Callback = function(on)
+        local h = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if h then h.WalkSpeed = on and 50 or 16 end
     end
 })
-PVPTab:CreateToggle({
+
+-- Anti-Queda
+PVP:CreateToggle({
     Name = "Anti-Queda",
     CurrentValue = false,
-    Callback = function(state)
-        if state then
-            local hum = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            hum.StateChanged:Connect(function(old, new)
-                if new == Enum.HumanoidStateType.Freefall then
-                    hum:ChangeState(Enum.HumanoidStateType.Jumping)
+    Callback = function(on)
+        if on then
+            game:GetService("RunService").Stepped:Connect(function()
+                local h = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                if h and h.FloorMaterial == Enum.Material.Air then
+                    h:ChangeState(Enum.HumanoidStateType.Physics)
                 end
             end)
         end
     end
 })
 
--- 3. Aba Farms
-local FarmsTab = Window:CreateTab("Farms", 4483362458)
-FarmsTab:CreateButton({
+-- 3. Farms
+local Farms = Window:CreateTab("Farms", 4483362458)
+
+Farms:CreateToggle({
     Name = "Auto-Farm Lixos da Cidade",
-    Callback = function()
-        loadstring(game:HttpGet("https://pastefy.app/AADELC1Z/raw"))()
-    end
-})
-FarmsTab:CreateButton({
-    Name = "Auto-Farm Planta Suja",
-    Callback = function()
-        loadstring(game:HttpGet("https://pastefy.app/JN93Q78D/raw"))()
+    CurrentValue = false,
+    Callback = function(on)
+        _G.LIXO = on
+        while _G.LIXO do
+            for _,v in pairs(workspace:GetDescendants()) do
+                if v.Name == "Lixo" and v:IsA("Part") then
+                    firetouchinterest(v, game.Players.LocalPlayer.Character.HumanoidRootPart, 0)
+                end
+            end
+            task.wait(1)
+        end
     end
 })
 
--- 4. Aba Aimbot
-local AimbotTab = Window:CreateTab("Aimbot", 4483362458)
-AimbotTab:CreateButton({
+Farms:CreateToggle({
+    Name = "Auto-Farm Planta Suja",
+    CurrentValue = false,
+    Callback = function(on)
+        _G.PLANTA = on
+        while _G.PLANTA do
+            for _,v in pairs(workspace:GetDescendants()) do
+                if v.Name == "Planta" and v:IsA("Part") then
+                    firetouchinterest(v, game.Players.LocalPlayer.Character.HumanoidRootPart, 0)
+                end
+            end
+            task.wait(1)
+        end
+    end
+})
+
+-- 4. Aimbot
+local Aimbot = Window:CreateTab("Aimbot", 4483362458)
+Aimbot:CreateButton({
     Name = "Ativar Aimbot",
     Callback = function()
         loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Aimbot-fov-mobile-7607"))()
     end
 })
 
--- 5. Aba Visuais
-local VisualTab = Window:CreateTab("Visuais", 4483362458)
-VisualTab:CreateToggle({
-    Name = "ESP (pessoa + item)",
+-- 5. Visuais
+local Visuais = Window:CreateTab("Visuais", 4483362458)
+
+-- ESP Funcional
+Visuais:CreateToggle({
+    Name = "ESP (Pessoas + Ferramentas)",
     CurrentValue = false,
-    Callback = function(state)
-        if state then
-            local Players = game:GetService("Players")
-            local RunService = game:GetService("RunService")
-            local function createESP(player)
-                if player == Players.LocalPlayer then return end
-                RunService.RenderStepped:Connect(function()
-                    local char = player.Character
-                    if char and char:FindFirstChild("Head") then
-                        if not char:FindFirstChild("Highlight") then
-                            local h = Instance.new("Highlight", char)
-                            h.FillColor = Color3.fromRGB(255, 255, 0)
-                            h.OutlineColor = Color3.fromRGB(255, 255, 255)
-                        end
-                    end
-                end)
-            end
-            for _, plr in ipairs(Players:GetPlayers()) do createESP(plr) end
-            Players.PlayerAdded:Connect(createESP)
-        end
-    end
-})
-VisualTab:CreateToggle({
-    Name = "Dupe (Duplicar itens)",
-    CurrentValue = false,
-    Callback = function(state)
-        if state then
+    Callback = function(on)
+        if on then
             loadstring(game:HttpGet("https://dpaste.com/6XGGZGEXG.txt"))()
         end
     end
 })
-VisualTab:CreateButton({
-    Name = "Infinite Yield",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
-    end
-})
-VisualTab:CreateButton({
-    Name = "God Mode",
-    Callback = function()
-        loadstring(game:HttpGet("https://pastebin.com/raw/V6wBhkfz"))()
-    end
-})
-VisualTab:CreateButton({
-    Name = "Anti-Staff",
-    Callback = function()
-        loadstring(game:HttpGet("https://pastefy.app/EU4G65R4/raw"))()
+
+-- Dupe (ligável/desligável)
+Visuais:CreateToggle({
+    Name = "Dupe (Duplicar Itens)",
+    CurrentValue = false,
+    Callback = function(on)
+        if on then
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/MiranhaExploiter/Miranha/main/Dupe.lua"))()
+        end
     end
 })
 
--- 6. Aba Players
-local PlayersTab = Window:CreateTab("Players", 4483362458)
-PlayersTab:CreateButton({
+-- 6. Players
+local Players = Window:CreateTab("Players", 4483362458)
+
+Players:CreateButton({
     Name = "Bring All",
     Callback = function()
-        for _, v in pairs(game.Players:GetPlayers()) do
-            if v.Character and v ~= game.Players.LocalPlayer then
-                v.Character:MoveTo(game.Players.LocalPlayer.Character.HumanoidRootPart.Position)
+        for _,plr in pairs(game.Players:GetPlayers()) do
+            if plr.Character then
+                plr.Character:MoveTo(game.Players.LocalPlayer.Character.HumanoidRootPart.Position)
             end
         end
     end
 })
 
--- 7. Aba Trolls
-local TrollsTab = Window:CreateTab("Trolls", 4483362458)
-TrollsTab:CreateButton({
+-- 7. Trolls
+local Trolls = Window:CreateTab("Trolls", 4483362458)
+
+-- Fake Lag
+Trolls:CreateButton({
     Name = "Fake Lag",
     Callback = function()
-        while true do
-            task.wait(0.1)
-            game:GetService("RunService").Stepped:Wait()
-        end
+        local rs = game:GetService("RunService")
+        rs:Set3dRenderingEnabled(false)
+        wait(5)
+        rs:Set3dRenderingEnabled(true)
     end
 })
-TrollsTab:CreateInput({
-    Name = "Freezer (congelar jogador por nome)",
-    PlaceholderText = "NomeDoJogador",
-    RemoveTextAfterFocusLost = true,
-    Callback = function(nick)
-        local target = game.Players:FindFirstChild(nick)
+
+-- Freezer por nome
+Trolls:CreateInput({
+    Name = "Dar Freezer por Nome",
+    PlaceholderText = "Digite o nome exato",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(name)
+        local target = game.Players:FindFirstChild(name)
         if target and target.Character then
-            for _, part in pairs(target.Character:GetDescendants()) do
-                if part:IsA("BasePart") then part.Anchored = true end
-            end
+            target.Character.HumanoidRootPart.Anchored = true
         end
     end
 })
 
--- Sistema Anti-Kick, Anti-Exploit, Anti-Ban, Anti-Blacklist
-pcall(function()
-    hookmetamethod(game, "__namecall", function(self, ...)
-        local method = getnamecallmethod()
-        if tostring(self) == "Kick" or method == "Kick" then
-            return
-        end
-        return self(...)
-    end)
-end)
+-- Sistema de Proteção
+local function Protecao()
+    local Players = game:GetService("Players")
+    local LP = Players.LocalPlayer
 
--- Proteção Anti-Blacklist/Exploit Extra
-game.Players.LocalPlayer.CharacterAdded:Connect(function()
-    for _, v in pairs(game:GetDescendants()) do
-        if v:IsA("RemoteEvent") and v.Name:lower():find("ban") then
-            v:Destroy()
-        end
-    end
-end)
+    -- Anti-Kick
+    local mt = getrawmetatable(game)
+    setreadonly(mt, false)
+    local old = mt.__namecall
+    mt.__namecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        if method == "Kick" and self == LP then return end
+        return old(self, ...)
+    end)
+
+    -- Anti-Ban / Anti-Exploit básico
+    LP.CharacterAdded:Connect(function(char)
+        char:WaitForChild("Humanoid").BreakJointsOnDeath = false
+    end)
+end
+
+Protecao()
